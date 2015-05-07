@@ -12,48 +12,52 @@ module Nzcoapi
 	include HTTParty
 	include Nokogiri
 	include Figaro
-	base_uri "http://www.businessdata.govt.nz"
-	format :xml
 
+    @@server_name = "www.businessdata.govt.nz"
 	@@access_key = YAML.load_file("config/application.yml")['nzcoapi_access_key']
 	@@secret_key = YAML.load_file("config/application.yml")['nzcoapi_secret_key']
 	@@timestamp = Time.now.rfc2822 + " GMT"
 
-	headers "Timestamp" => @@timestamp
+    base_uri = "http://" + @@server_name
+    format :xml
+
   	headers "Access" => @@access_key
   	headers 'Accept' => "application/xml"
 
 	def self.search_for_company(string)
 		@@timestamp = Time.now.rfc2822 + " GMT"
+        @@resource_name = "/data/app/ws/rest/companies/entity/search/v2.0/#{string}"
 
-		stringtosign = "GET" + "\n" + "www.businessdata.govt.nz" + "\n" + "/data/app/ws/rest/companies/entity/search/v2.0/#{string}" + "\n" + @@timestamp + "\n" + @@access_key + "\n" + "application/xml" + "\n"
+		stringtosign = "GET" + "\n" + @@server_name + "\n" + @@resource_name + "\n" + @@timestamp + "\n" + @@access_key + "\n" + "application/xml" + "\n"
 
 		headers "Authorization" => @@access_key + ":" + Base64.strict_encode64(OpenSSL::HMAC.digest('sha256', @@secret_key, stringtosign))
 		headers "Timestamp" => @@timestamp
 
-		Nokogiri::XML((get("/data/app/ws/rest/companies/entity/search/v2.0/#{string}").body), 'UTF-8')
+		Nokogiri::XML((get(@@resource_name).body), 'UTF-8')
 	end
 
 	def self.find_director(string)
 		@@timestamp = Time.now.rfc2822 + " GMT"
+        @@resource_name = "/data/app/ws/rest/companies/role/search/v1.0/size/200/type/DIR/#{string}"
 
-		stringtosign = "GET" + "\n" + "www.businessdata.govt.nz" + "\n" + "/data/app/ws/rest/companies/role/search/v1.0/size/200/type/DIR/#{string}" + "\n" + @@timestamp + "\n" + @@access_key + "\n" + "application/xml" + "\n"
+		stringtosign = "GET" + "\n" + @@server_name + "\n" + @@resource_name + "\n" + @@timestamp + "\n" + @@access_key + "\n" + "application/xml" + "\n"
 
 		headers "Authorization" => @@access_key + ":" + Base64.strict_encode64(OpenSSL::HMAC.digest('sha256', @@secret_key, stringtosign))
 		headers "Timestamp" => @@timestamp
 
-		Nokogiri::XML((get("/data/app/ws/rest/companies/role/search/v1.0/size/200/type/DIR/#{string}").body), 'UTF-8')
+		Nokogiri::XML((get(@@resource_name).body), 'UTF-8')
 	end
 
 	def self.find_company(id)
 		@@timestamp = Time.now.rfc2822 + " GMT"
+        @@resource_name = "/data/app/ws/rest/companies/entity/v2.0/#{id}"
 
-		stringtosign = "GET" + "\n" + "www.businessdata.govt.nz" + "\n" + "/data/app/ws/rest/companies/entity/v2.0/#{id}" + "\n" + @@timestamp + "\n" + @@access_key + "\n" + "application/xml" + "\n"
+		stringtosign = "GET" + "\n" + @@server_name + "\n" + @@resource_name + "\n" + @@timestamp + "\n" + @@access_key + "\n" + "application/xml" + "\n"
 
 		headers "Authorization" => @@access_key + ":" + Base64.strict_encode64(OpenSSL::HMAC.digest('sha256', @@secret_key, stringtosign))
         headers "Timestamp" => @@timestamp
 
-		Nokogiri::XML((get("/data/app/ws/rest/companies/entity/v2.0/#{id}").body), 'UTF-8')
+		Nokogiri::XML((get(@@resource_name).body), 'UTF-8')
 	end
 
 	def self.tagged(tag)
